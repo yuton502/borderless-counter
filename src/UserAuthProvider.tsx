@@ -1,6 +1,7 @@
 import { getAdditionalUserInfo, signInWithPopup, signOut, TwitterAuthProvider, updateCurrentUser, User } from "firebase/auth"
+import * as databaseModule from "firebase/database";
 import { onAuthStateChanged } from "firebase/auth";
-import { firebaseAuth } from "./firebaseInititial";
+import { database, firebaseAuth } from "./firebaseInititial";
 import React, { createContext, useCallback, useEffect, useState } from "react";
 
 
@@ -25,7 +26,17 @@ const AuthProvider: React.FC = ({ children }) => {
 
   useEffect(() => {
     // Firebase Authのメソッド。ログイン状態が変化すると呼び出される
-    onAuthStateChanged(firebaseAuth, user => setCurrentUser(user));
+    onAuthStateChanged(firebaseAuth, user => {
+      setCurrentUser(user);
+
+      const userRef = databaseModule.ref(database, 'users/' + user?.uid);
+      return databaseModule.onValue(userRef, (snapshot) => {
+        const userId = (snapshot.val() && snapshot.val().user_id) || 'Anonymous';
+        setUserId(userId);
+      }, {
+        onlyOnce: true
+      });
+    });
     console.log("Auth state changed!")
   }, [userId]);
 
@@ -41,6 +52,8 @@ const AuthProvider: React.FC = ({ children }) => {
 
         // firebaseAuth.updateCurrentUser(user);
         setUserId(additionalUserInfo?.username ?? "");
+        const userRef = databaseModule.ref(database, 'users/' + user.uid);
+        databaseModule.set(userRef, {uid: user.uid, user_id: additionalUserInfo?.username});
         console.log(user.uid);
       }).catch((error) => {
         // Handle Errors here.
