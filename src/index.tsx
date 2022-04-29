@@ -1,12 +1,22 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import './index.css';
+import './css/index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
+import Login from './Login';
+import 'bootstrap/dist/css/bootstrap.min.css';
+import { AuthProvider } from './UserAuthProvider';
+import { CounterProvider } from './CounterProvider';
+
 
 ReactDOM.render(
   <React.StrictMode>
-    <App />
+    <AuthProvider>
+      <CounterProvider>
+        <Login />      
+        <App />
+      </CounterProvider>
+    </AuthProvider>
   </React.StrictMode>,
   document.getElementById('root')
 );
