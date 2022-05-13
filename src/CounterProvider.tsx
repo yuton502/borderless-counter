@@ -21,9 +21,9 @@ interface ICounterContext {
   remove: (counterUid: string) => void;
 }
 
-
-function createWrapContext<ContextType>() {
-  const context = React.createContext<ContextType | undefined>(undefined);
+//undefinedを許容するContext
+function createWrapContext<T>() {
+  const context = React.createContext<T | undefined>(undefined);
   const useWrapContext = () => {
     const usingContext = React.useContext(context);
     if (!usingContext) throw new Error("useWrapContext must be inside a Provider with a value");
@@ -32,54 +32,55 @@ function createWrapContext<ContextType>() {
   return [useWrapContext, context.Provider] as const;
 }
 
-// Contextを宣言。Contextの中身を {counters: undefined} と定義
+// Contextの宣言
 export const [useCounter, CounterContextProvider] = createWrapContext<ICounterContext>();
 
 const CounterProvider: React.FC = ({ children }) => {
   // Contextに持たせるcurrentUserは内部的にはuseStateで管理
-  const [counterObject, setCounterObject] = useState<ICounterObject>({
+  const initialCounterObject = {
     name: "untitled",
     count: 0,
     uid: "no-uid-0"
-  })
-  const [counters, setCounters] = useState<ICounterObject[]>([counterObject]);
+  };
+  const [counters, setCounters] = useState<ICounterObject[]>([initialCounterObject]);
   const user = useContext(AuthContext);
 
-  const userCounterRef = databaseModule.ref(database, 'counters/' + user.currentUser?.uid)
+  const userCounterRef = databaseModule.ref(database, 'counters/' + user.currentUser?.uid);
   let data: ICounterObject[] = []
 
+  //user.currentUserが変更されるたびに実行
   useMemo(() => {
-    if (user.currentUser !== null) {
-      setCounters(counters.slice(0, 0) ?? [counterObject]);
+    if (user.currentUser) {
+      setCounters([]);
+      data = [];
 
       databaseModule.get(databaseModule.query(userCounterRef, databaseModule.orderByPriority())).then((snapshot) => {
         // console.log("database changed => " + );
         snapshot.forEach(rawData => {
           console.log("rawcounters.uid = " + rawData.val().uid)
         
-          if (counters.length == 0 || !counters.includes(rawData.val())) {
+          if (data.length == 0 || !data.includes(rawData.val())) {
             data.push(rawData.val());
-            setCounters(data);
           }
           console.log("checked...\n" + JSON.stringify(rawData.val()));
         })
-        console.log(snapshot.val())
+        setCounters(data);
+        console.log("[useMemo]" + JSON.stringify(snapshot.val()));
       })
     }
-  }, [user]);
+  }, [user.currentUser]);
 
-  // databaseModule.onChildAdded()
 
   const add = useCallback((counterCount: number, counterName: string) => {
     let key = "";
-    let counterObject: ICounterObject = {
+    let initialCounterObject: ICounterObject = {
       name: counterName,
       count: counterCount,
       uid: "no-uid-1"
      }
     
     const newPushRef = databaseModule.push(userCounterRef);
-    databaseModule.set(newPushRef, counterObject)
+    databaseModule.set(newPushRef, initialCounterObject)
       .then(() => {      
         console.log("current.user : " + user.currentUserId);
         console.log("current.user : (from auth)" + firebaseAuth.currentUser?.uid);
@@ -88,9 +89,9 @@ const CounterProvider: React.FC = ({ children }) => {
         updates[newPushRef.key + "/uid"] = newPushRef.key;
 
         databaseModule.update(userCounterRef, updates);
-        counterObject.uid = newPushRef.key ?? "no-uid-1";
+        initialCounterObject.uid = newPushRef.key ?? "no-uid-1";
     })
-    setCounters([...counters, counterObject])
+    setCounters([...counters, initialCounterObject])
   },[counters, user]);
 
   const update = useCallback((counterUid: string, counterCount?: number, counterName?: string) => {
@@ -113,14 +114,18 @@ const CounterProvider: React.FC = ({ children }) => {
         index == counters.findIndex((count) => count.uid === counterUid) ? updatesObject : counter
       ))
     );
-  } ,[counters]);
+    console.log("[updated] " + userCounterRef);
+  }, [counters]);
 
   const remove = useCallback((counterUid: string) => {
-    databaseModule.remove(databaseModule.ref(database, 'counters/' + user.currentUser?.uid + '/' + counterUid));
-    setCounters(
-      counters.filter((counter) => counter.uid != counterUid)
-    )
-  }, [user, counters])
+    databaseModule.remove(databaseModule.child(userCounterRef, '/' + counterUid))
+    .then(() => {
+      data = counters;
+      setCounters(data.filter((counter) => counter.uid != counterUid));
+      console.log("removed database in + " + counterUid);
+      console.log(data)  
+    })
+  },[counters, data]);
 
   return (
     <CounterContextProvider

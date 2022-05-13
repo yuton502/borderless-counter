@@ -1,19 +1,18 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import ReactDOM from 'react-dom';
 import './css/index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
-import Login from './Login';
+import SignControl from './SignControl';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import { AuthProvider } from './UserAuthProvider';
+import { AuthContext, AuthProvider } from './UserAuthProvider';
 import { CounterProvider } from './CounterProvider';
-
 
 ReactDOM.render(
   <React.StrictMode>
     <AuthProvider>
       <CounterProvider>
-        <Login />      
+        <SignControl />
         <App />
       </CounterProvider>
     </AuthProvider>

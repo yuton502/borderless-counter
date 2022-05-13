@@ -38,14 +38,13 @@ const AuthProvider: React.FC = ({ children }) => {
       });
     });
     console.log("Auth state changed!")
-  }, [userId]);
+  }, [currentUser]);
 
   const signin = useCallback(() => {
     const provider = new TwitterAuthProvider();
 
     signInWithPopup(firebaseAuth, provider)
       .then((userCredential) => {
-        const credential = TwitterAuthProvider.credentialFromResult(userCredential);
         // The signed-in user info.
         const user = userCredential.user;
         const additionalUserInfo = getAdditionalUserInfo(userCredential);
@@ -57,11 +56,7 @@ const AuthProvider: React.FC = ({ children }) => {
         console.log(user.uid);
       }).catch((error) => {
         // Handle Errors here.
-        const errorCode = error.code;
-        const errorMessage = error.message;
-        // The AuthCredential type that was used.
-        const credential = TwitterAuthProvider.credentialFromError(error);
-        // ...
+        console.log(error.code + " : " + error.message)
       });
   }, []);
 
@@ -75,11 +70,7 @@ const AuthProvider: React.FC = ({ children }) => {
         setUserId("");
       }).catch((error) => {
         // Handle Errors here.
-        const errorCode = error.code;
-        const errorMessage = error.message;
-        // The AuthCredential type that was used.
-        const credential = TwitterAuthProvider.credentialFromError(error);
-        // ...
+        console.log(error.code + " : " + error.message)
       });
   }, [])
 
