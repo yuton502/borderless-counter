@@ -1,7 +1,7 @@
 import { getAdditionalUserInfo, signInWithPopup, signOut, TwitterAuthProvider, updateCurrentUser, User } from "firebase/auth"
 import * as databaseModule from "firebase/database";
 import { onAuthStateChanged } from "firebase/auth";
-import { database, firebaseAuth } from "./firebaseInititial";
+import { database, firebaseAuth } from "./config/firebaseInititial";
 import React, { createContext, useCallback, useEffect, useState } from "react";
 
 

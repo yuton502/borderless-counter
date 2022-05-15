@@ -2,7 +2,7 @@ import React, { useContext } from 'react';
 import ReactDOM from 'react-dom';
 import './css/index.css';
 import App from './App';
-import reportWebVitals from './reportWebVitals';
+import reportWebVitals from './config/reportWebVitals';
 import SignControl from './SignControl';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { AuthContext, AuthProvider } from './UserAuthProvider';

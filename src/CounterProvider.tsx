@@ -1,11 +1,8 @@
-import { getAdditionalUserInfo, signInWithPopup, signOut, TwitterAuthProvider, User } from "firebase/auth"
-import { onAuthStateChanged } from "firebase/auth";
-import { firebaseAuth, database } from "./firebaseInititial";
-import React, { createContext, useCallback, useContext, useEffect, useState, useMemo } from "react";
+import { firebaseAuth, database } from "./config/firebaseInititial";
+import React, { useCallback, useContext, useState, useMemo } from "react";
 import * as databaseModule from "firebase/database";
 import { AuthContext } from "./UserAuthProvider";
-import { snapshotEqual } from "firebase/firestore";
-
+  
 
 interface ICounterObject {
   name: string,
